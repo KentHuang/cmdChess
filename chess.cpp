@@ -43,13 +43,13 @@ void boardInit(string* tiles) {
 }
 
 // ie. (R, e8, f2, x, #)
-void parseInput(string input, string& piece, string& fromPos, string& toPos, char& op, char& postOp) {
+void parseInput(string input, char& piece, string& fromPos, string& toPos, char& op, char& postOp) {
   regex e("[RNBQK]");
   bool m = regex_match(input.begin(), input.begin()+1, e);
   if (m) { 
     piece = input[0]; 
     input = input.substr(1, input.size()-1); 
-  } else { piece = "P"; }
+  } else { piece = 'P'; }
 
   fromPos = input.substr(0, 2);
   op = input[2];
@@ -88,12 +88,12 @@ int main() {
   
   while (true) {
   	string input;
-    string piece;
+    char piece;
     string from;
     string to;
     char op;
     char postOp;
-    bool regMatched;
+    bool validSyntax;
     bool validPiece;
     bool validPlayerPiece;
     bool validMove;
@@ -101,32 +101,28 @@ int main() {
 
   	do {
   	  printBoard(board);
-  	  cout << error << ((turn == '+') ? "White, " : "Black, ") << "make your move: ";
+  	  cout << error << ((turn == '+') ? "+, " : "-, ") << "make your move: ";
   	  cin >> input;
-  	  regMatched = regex_match(input, validNotes);
 
-      if (regMatched) {
+  	  validSyntax = regex_match(input, validNotes);
+      if (validSyntax) {
         parseInput(input, piece, from, to, op, postOp);
       } else {
         error = "Invalid input syntax. ";
         continue;
       }
 
-      validPiece = board[coordToIndex(from)].compare(piece);
-      if (!validPiece) { error = "Invalid piece type. "; }
-
       validPlayerPiece = (turn == board[coordToIndex(from)][0]) ? true : false;
-      if (validPlayerPiece) { error = "Invalid piece color. "; }
+      if (!validPlayerPiece) { error = "Invalid piece color. "; continue; }
 
-  	} while (!regMatched || !validPiece || !validPlayerPiece || !validMove);
+      validPiece = (piece == board[coordToIndex(from)][1]) ? true : false;
+      if (!validPiece) { error = "Invalid piece type. "; continue; }
+
+  	} while (!validSyntax || !validPiece || !validPlayerPiece);
 
     std::swap(board[coordToIndex(from)], board[coordToIndex(to)]);
   	moves.push_back(input);
-  	if (turn == '+') {
-      turn = '-';
-    } else {
-      turn = '+';
-    }    
+  	turn = (turn == '+') ? '-' : '+';  
   }
 
   return 0;
